@@ -1,0 +1,37 @@
+{
+  "name": "dsh-web-gzip",
+  "version": "1.0.0",
+  "description": "DSH 插件：给 DeepSeek Harness Web 响应加透明 gzip 压缩，加速远程访问会话记录加载（实测单页 12.6 MB → 1.06 MB）；零运行时依赖，纯 node:zlib 中间件。",
+  "type": "module",
+  "main": "host.js",
+  "exports": {
+    ".": "./host.js",
+    "./package.json": "./package.json"
+  },
+  "files": [
+    "host.js"
+  ],
+  "keywords": [
+    "dsh",
+    "dsh-plugin",
+    "deepseek-harness",
+    "gzip",
+    "compression",
+    "http",
+    "performance",
+    "plugin"
+  ],
+  "author": "kinyokun",
+  "license": "MIT",
+  "engines": {
+    "node": ">=20"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/kinyokun/dsh-web-gzip.git"
+  },
+  "bugs": {
+    "url": "https://github.com/kinyokun/dsh-web-gzip/issues"
+  },
+  "homepage": "https://github.com/kinyokun/dsh-web-gzip#readme"
+}
