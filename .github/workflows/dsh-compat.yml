@@ -1,0 +1,92 @@
+name: DSH compat watch
+
+on:
+  schedule:
+    - cron: "40 2 * * *"
+  workflow_dispatch:
+
+permissions:
+  contents: write
+  issues: write
+  pull-requests: write
+
+concurrency:
+  group: dsh-compat
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    env:
+      GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - id: v
+        name: Compare npm latest with tested baseline
+        run: |
+          latest=$(npm view @deepseek-ai/dsh dist-tags.latest)
+          tested=$(jq -r .testedVersion .dsh-compat.json)
+          echo "latest=$latest" >> "$GITHUB_OUTPUT"
+          echo "tested=$tested" >> "$GITHUB_OUTPUT"
+          if [ "$latest" = "$tested" ]; then
+            echo "changed=false" >> "$GITHUB_OUTPUT"
+            echo "DSH $latest is already the tested baseline."
+          else
+            echo "changed=true" >> "$GITHUB_OUTPUT"
+            echo "New DSH release: $latest (tested: $tested)"
+          fi
+      - name: Install candidate DSH
+        if: steps.v.outputs.changed == "true"
+        run: |
+          mkdir -p /tmp/dsh
+          cd /tmp/dsh
+          npm init -y > /dev/null
+          npm i --no-audit --no-fund "@deepseek-ai/dsh@${{ steps.v.outputs.latest }}"
+      - name: Run tests against candidate
+        if: steps.v.outputs.changed == "true"
+        shell: bash
+        env:
+          DSH_NODE_MODULES: /tmp/dsh/node_modules/@deepseek-ai/dsh/node_modules
+        run: |
+          set -o pipefail
+          npm test 2>&1 | tee /tmp/test.log
+      - name: Report failure as issue
+        if: failure() && steps.v.outputs.changed == "true"
+        run: |
+          title="DSH ${{ steps.v.outputs.latest }} 兼容性检查失败"
+          existing=$(gh issue list --state open --search "$title in:title" --json number --jq ".[0].number // empty")
+          {
+            echo "自动化兼容检查在 **@deepseek-ai/dsh ${{ steps.v.outputs.latest }}** 上失败。"
+            echo
+            echo "- 已测试基线：${{ steps.v.outputs.tested }}"
+            echo "- 工作流运行：${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"
+            echo
+            echo "~~~"
+            tail -n 60 /tmp/test.log 2>/dev/null || echo "(no test log)"
+            echo "~~~"
+          } > /tmp/body.md
+          if [ -n "$existing" ]; then
+            gh issue comment "$existing" --body-file /tmp/body.md
+          else
+            gh issue create --title "$title" --label dsh-upgrade --body-file /tmp/body.md
+          fi
+      - name: Open compat-baseline PR
+        if: success() && steps.v.outputs.changed == "true"
+        run: |
+          branch="bot/dsh-${{ steps.v.outputs.latest }}"
+          if [ -n "$(gh pr list --head "$branch" --state open --json number --jq ".[0].number // empty")" ]; then
+            echo "PR for $branch already open; nothing to do."
+            exit 0
+          fi
+          node scripts/bump-compat.mjs "${{ steps.v.outputs.latest }}"
+          git config user.name "dsh-compat-bot"
+          git config user.email "dsh-compat-bot@users.noreply.github.com"
+          git checkout -B "$branch"
+          git add .dsh-compat.json
+          git commit -m "chore: verify DSH ${{ steps.v.outputs.latest }} compatibility"
+          git push -u origin "$branch"
+          gh pr create --base main --head "$branch" --title "chore: verify DSH ${{ steps.v.outputs.latest }} compatibility" --body "自动化兼容检查通过：@deepseek-ai/dsh ${{ steps.v.outputs.latest }}。运行记录：${{ github.server_url }}/${{ github.repository }}/actions/runs/${{ github.run_id }}"

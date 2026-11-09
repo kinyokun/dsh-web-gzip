@@ -1,0 +1,5 @@
+{
+  "testedVersion": "0.2.2-rc.1",
+  "testedAt": "2026-11-09",
+  "notes": "兼容基线。GitHub Actions 每日对比 npm dist-tags.latest；DSH 巡检任务据此决定是否适配并更新本文件。"
+}

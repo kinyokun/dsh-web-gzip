@@ -143,6 +143,16 @@ cp host.js package.json "$PROFILE_DIR/dsh-web-gzip/"
 
 DSH mainline 变化很快：升级 DSH 后先跑 `node --test test/gzip.test.mjs`，再在 staging 上用 `curl -H 'Accept-Encoding: gzip' -D -` 验证真实响应头。
 
+## 维护自动化
+
+| 机制 | 触发 | 做什么 |
+| --- | --- | --- |
+| `.github/workflows/ci.yml` | push / PR / 手动 | Node 22/24 跑单元测试；另起一个 job 安装 **@deepseek-ai/dsh@latest**，用真实 `WebServer` 跑集成测试 |
+| `.github/workflows/dsh-compat.yml` | 每天 02:40 UTC / 手动 | 对比 npm `dist-tags.latest` 与 `.dsh-compat.json`；有新版就装上跑全部测试：通过 → 开 `bot/dsh-<ver>` PR 更新兼容基线；失败 → 建/更新 `dsh-upgrade` issue 并附日志 |
+| DSH 定时任务「DSH 插件兼容巡检」 | 每天 11:00 Asia/Shanghai | 本机 Agent 读 issue / PR / 工作流结果，适配 `host.js`、跑测试、验证真实响应头、发布并重装到 `desktop` 与 `web` profile |
+
+兼容基线写在 [`.dsh-compat.json`](.dsh-compat.json)；升级 DSH 后由 `scripts/bump-compat.mjs` 更新。
+
 ## Testing
 
 ```bash

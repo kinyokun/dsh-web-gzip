@@ -1,0 +1,50 @@
+name: CI
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  unit:
+    name: Unit tests (Node ${{ matrix.node }})
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        node: [22, 24]
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: ${{ matrix.node }}
+      - name: Run tests
+        run: npm test
+
+  live:
+    name: Real WebServer vs latest DSH
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Install latest @deepseek-ai/dsh
+        run: |
+          mkdir -p /tmp/dsh
+          cd /tmp/dsh
+          npm init -y > /dev/null
+          npm i --no-audit --no-fund @deepseek-ai/dsh@latest
+          node -p "require('/tmp/dsh/node_modules/@deepseek-ai/dsh/package.json').version"
+      - name: Unit + real WebServer tests
+        env:
+          DSH_NODE_MODULES: /tmp/dsh/node_modules/@deepseek-ai/dsh/node_modules
+        run: npm test
