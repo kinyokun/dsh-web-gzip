@@ -40,14 +40,14 @@ jobs:
             echo "New DSH release: $latest (tested: $tested)"
           fi
       - name: Install candidate DSH
-        if: steps.v.outputs.changed == "true"
+        if: steps.v.outputs.changed == 'true'
         run: |
           mkdir -p /tmp/dsh
           cd /tmp/dsh
           npm init -y > /dev/null
           npm i --no-audit --no-fund "@deepseek-ai/dsh@${{ steps.v.outputs.latest }}"
       - name: Run tests against candidate
-        if: steps.v.outputs.changed == "true"
+        if: steps.v.outputs.changed == 'true'
         shell: bash
         env:
           DSH_NODE_MODULES: /tmp/dsh/node_modules/@deepseek-ai/dsh/node_modules
@@ -55,7 +55,7 @@ jobs:
           set -o pipefail
           npm test 2>&1 | tee /tmp/test.log
       - name: Report failure as issue
-        if: failure() && steps.v.outputs.changed == "true"
+        if: failure() && steps.v.outputs.changed == 'true'
         run: |
           title="DSH ${{ steps.v.outputs.latest }} 兼容性检查失败"
           existing=$(gh issue list --state open --search "$title in:title" --json number --jq ".[0].number // empty")
@@ -75,7 +75,7 @@ jobs:
             gh issue create --title "$title" --label dsh-upgrade --body-file /tmp/body.md
           fi
       - name: Open compat-baseline PR
-        if: success() && steps.v.outputs.changed == "true"
+        if: success() && steps.v.outputs.changed == 'true'
         run: |
           branch="bot/dsh-${{ steps.v.outputs.latest }}"
           if [ -n "$(gh pr list --head "$branch" --state open --json number --jq ".[0].number // empty")" ]; then
