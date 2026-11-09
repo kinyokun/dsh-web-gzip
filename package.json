@@ -1,9 +1,12 @@
 {
   "name": "dsh-web-gzip",
-  "version": "1.0.0",
-  "description": "DSH 插件：给 DeepSeek Harness Web 响应加透明 gzip 压缩，加速远程访问会话记录加载（实测单页 12.6 MB → 1.06 MB）；零运行时依赖，纯 node:zlib 中间件。",
+  "version": "2.0.0",
+  "description": "DSH 插件：给 DeepSeek Harness Web 响应加透明 gzip 压缩，加速远程访问会话记录加载（实测单页 12.6 MB → 1.06 MB）；兼容 DSH 0.2.x 的 handler / resource 双路由模型，零运行时依赖。",
   "type": "module",
   "main": "host.js",
+  "scripts": {
+    "test": "node --test test/gzip.test.mjs test/live-webserver.test.mjs"
+  },
   "exports": {
     ".": "./host.js",
     "./package.json": "./package.json"
