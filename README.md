@@ -157,6 +157,9 @@ DSH mainline 变化很快：升级 DSH 后先跑 `node --test test/gzip.test.mjs
 
 ```bash
 node --test test/gzip.test.mjs     # 或直接运行 test/smoke.sh
+
+# 真实 WebServer 集成（可选）：指到包含 @deepseek-ai/* 的 node_modules
+DSH_NODE_MODULES=/tmp/dsh/node_modules node --test test/live-webserver.test.mjs
 ```
 
 测试套件用 mock `webServer`（DSH 0.2.x 形态）+ 真实 `node:http` 服务器做字节级断言：gzip 往返、压缩率、SSE / zip / 图片 / 小响应 / HEAD / Range / 204 / 304 / 已编码响应透传、`vary` 合并、`content-length` 移除、非 gzip 客户端逐字节一致、handler 抛错 400 兜底、加载后注册路由生效、disposer 完整还原；以及 resource 路由流式压缩、`readResource` 保持原始字节、`{ resource }` fallback、内置 gzip 让位。

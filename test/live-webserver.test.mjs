@@ -7,19 +7,28 @@
  * v1.0.x 在 0.2.x 上让所有请求 400，就是因为 mock 没跟上 { resource } 形态。
  *
  * 运行：node --test test/live-webserver.test.mjs
- * 指定安装位置：DSH_NODE_MODULES=/path/to/@deepseek-ai/dsh/node_modules
+ * 指定安装位置：DSH_NODE_MODULES=/path/to/node_modules（包含 @deepseek-ai/* 的目录；
+ * 本地 npm 安装通常是 <prefix>/node_modules，全局安装是 .../@deepseek-ai/dsh/node_modules）。
  */
 import { test } from "node:test";
 import assert from "node:assert/strict";
 import http from "node:http";
+import path from "node:path";
 import { createRequire } from "node:module";
 import { gunzipSync } from "node:zlib";
 
-const CANDIDATES = [
-  process.env.DSH_NODE_MODULES,
-  "/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules",
-  process.env.HOME ? process.env.HOME + "/.dsh/profiles/desktop/node_modules" : undefined,
-].filter(Boolean);
+const explicit = process.env.DSH_NODE_MODULES;
+// 显式指定时只认它（含旧写法推导），避免悄悄回退到机器上的其他 DSH 版本。
+const CANDIDATES = explicit
+  ? [
+      explicit,
+      // 兼容旧写法的 .../@deepseek-ai/dsh/node_modules：npm 本地安装会把依赖提升到上层 node_modules。
+      path.resolve(explicit, "..", "..", ".."),
+    ]
+  : [
+      "/opt/homebrew/lib/node_modules/@deepseek-ai/dsh/node_modules",
+      process.env.HOME ? process.env.HOME + "/.dsh/profiles/desktop/node_modules" : undefined,
+    ].filter(Boolean);
 
 function resolveDsh() {
   for (const root of CANDIDATES) {
@@ -33,6 +42,9 @@ function resolveDsh() {
 }
 
 const root = resolveDsh();
+if (explicit && root === undefined) {
+  throw new Error(`DSH_NODE_MODULES=${explicit} 下找不到 @deepseek-ai/dsh-host-webserver；请指向包含 @deepseek-ai/* 的 node_modules 目录`);
+}
 const skip = root === undefined ? "未找到 @deepseek-ai/dsh-host-webserver，跳过真实 WebServer 集成" : false;
 
 test("真实 WebServer 0.2.x：handler / resource / {resource} fallback 都压缩", { skip }, async () => {

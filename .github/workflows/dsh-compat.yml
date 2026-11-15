@@ -50,7 +50,7 @@ jobs:
         if: steps.v.outputs.changed == 'true'
         shell: bash
         env:
-          DSH_NODE_MODULES: /tmp/dsh/node_modules/@deepseek-ai/dsh/node_modules
+          DSH_NODE_MODULES: /tmp/dsh/node_modules
         run: |
           set -o pipefail
           npm test 2>&1 | tee /tmp/test.log

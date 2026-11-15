@@ -2,6 +2,13 @@
 
 本仓库版本采用语义化版本（SemVer）。格式基于 [Keep a Changelog](https://keepachangelog.com/zh-CN/1.1.0/)。
 
+## [Unreleased]
+
+### Fixed
+
+- **CI 的真实 WebServer 集成不再被静默跳过**：npm 本地安装会把 `@deepseek-ai/*` 提升到 `<prefix>/node_modules`，工作流此前却把 `DSH_NODE_MODULES` 指向不存在的 `.../@deepseek-ai/dsh/node_modules`，Linux runner 上集成测试直接 `skip`，兼容检查实际只跑了 mock。现在指向正确目录，且显式设置但解析失败时直接报错，不再回退跳过。
+- `DSH_NODE_MODULES` 同时兼容提升后的 `<prefix>/node_modules` 与旧写法的 `.../@deepseek-ai/dsh/node_modules`。
+
 ## [2.0.0] - 2026-11-09
 
 ### Fixed
