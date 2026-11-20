@@ -4,6 +4,10 @@
 
 ## [Unreleased]
 
+### Changed
+
+- 兼容基线升级到 `@deepseek-ai/dsh 0.2.2-rc.5`（2026-11-20）：在 `/tmp/dshchk` 安装该版本后跑 `npm test`，32 项全过（含真实 `WebServer` 集成，未跳过）；无需改动 `host.js`。
+
 ### Fixed
 
 - **CI 的真实 WebServer 集成不再被静默跳过**：npm 本地安装会把 `@deepseek-ai/*` 提升到 `<prefix>/node_modules`，工作流此前却把 `DSH_NODE_MODULES` 指向不存在的 `.../@deepseek-ai/dsh/node_modules`，Linux runner 上集成测试直接 `skip`，兼容检查实际只跑了 mock。现在指向正确目录，且显式设置但解析失败时直接报错，不再回退跳过。

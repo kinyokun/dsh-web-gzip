@@ -3,7 +3,7 @@
 <p align="center">
   <img alt="license" src="https://img.shields.io/github/license/kinyokun/dsh-web-gzip">
   <img alt="version" src="https://img.shields.io/github/package-json/v/kinyokun/dsh-web-gzip">
-  <img alt="DSH" src="https://img.shields.io/badge/DSH-0.2.2--rc.1%20%E5%AE%9E%E6%B5%8B-blue">
+  <img alt="DSH" src="https://img.shields.io/badge/DSH-0.2.2--rc.5%20%E5%AE%9E%E6%B5%8B-blue">
   <img alt="zero deps" src="https://img.shields.io/badge/%E8%BF%90%E8%A1%8C%E6%97%B6%E4%BE%9D%E8%B5%96-0-green">
 </p>
 
@@ -135,10 +135,10 @@ cp host.js package.json "$PROFILE_DIR/dsh-web-gzip/"
 
 | 项目 | 声明 |
 | --- | --- |
-| 支持的 DSH 版本 | **`@deepseek-ai/dsh 0.2.2-rc.1`**（2026-11-09 实测：单元测试 31 项 + 真实 `WebServer` 集成 + Desktop `NextWebServer` 子类 + 真实 `dsh web` 静态资源 / index 响应头） |
+| 支持的 DSH 版本 | **`@deepseek-ai/dsh 0.2.2-rc.5`**（2026-11-20 实测：`npm test` 32 项全过，含真实 `WebServer` 集成 + Desktop `NextWebServer` 子类 + 真实 `dsh web` 静态资源 / index 响应头） |
 | 兼容的旧版本 | 0.1.0-rc.6（v1 行为不变；resource 路由不存在时自动只走 handler 分支） |
 | 已验证环境 | macOS + Node.js 22/26；`dsh web` profile patch 挂载；DSH NEXT 2.0.22（desktop profile）与全局 `dsh web`（web profile） |
-| 最后验证日期 | 2026-11-09 |
+| 最后验证日期 | 2026-11-20 |
 | 已知耦合点 | `webServer` 的 `exact` / `prefixes` / `fallback` 与 `register` / `registerFallback`，以及路由的 handler / resource 形态（见 SECURITY.md）。DSH 升级改动该结构时需同步适配；v1 在 0.2.x 上曾因此让所有请求 400 |
 
 DSH mainline 变化很快：升级 DSH 后先跑 `node --test test/gzip.test.mjs`，再在 staging 上用 `curl -H 'Accept-Encoding: gzip' -D -` 验证真实响应头。
